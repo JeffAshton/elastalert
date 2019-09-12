@@ -5,6 +5,7 @@ from elastalert.kibana import add_filter
 from elastalert.kibana import dashboard_temp
 from elastalert.kibana import filters_from_dashboard
 from elastalert.kibana import kibana4_dashboard_link
+from elastalert.kibana import kibana6_discover_link
 
 
 # Dashboard schema with only filters section
@@ -102,3 +103,48 @@ def test_url_env_substitution(environ):
         '2017-01-01T00:00:00Z',
     )
     assert url.startswith('http://kibana:5601/#/Dashboard')
+
+
+def test_kibana6_discover_link(environ):
+    environ.update({
+        'KIBANA_HOST': 'kibana',
+        'KIBANA_PORT': '5601',
+    })
+    discover = 'http://$KIBANA_HOST:$KIBANA_PORT/#/discover'
+    index = 'logs-*'
+    columns = ['timestamp', 'message']
+    filters = [{'term': {'level': 30}}]
+    starttime = '2019-09-01T00:00:00Z'
+    endtime = '2019-09-02T00:00:00Z'
+    url = kibana6_discover_link(discover, index, columns, filters, starttime, endtime)
+    expectedUrl = (
+        'http://kibana:5601/#/discover'
+        + '?_g=%28'
+        + 'refreshInterval%3A%28pause%3A%21t%2Cvalue%3A0%29%2C'
+        + 'time%3A%28'
+        + 'from%3A%272019-09-01T00%3A00%3A00Z%27%2C'
+        + 'mode%3Aabsolute%2C'
+        + 'to%3A%272019-09-02T00%3A00%3A00Z%27'
+        + '%29'
+        + '%29'
+        + '&_a=%28'
+        + 'columns%3A%21%28timestamp%2Cmessage%29%2C'
+        + 'filters%3A%21%28'
+        + '%28'
+        + '%27%24state%27%3A%28store%3AappState%29%2C'
+        + 'bool%3A%28must%3A%21%28%28term%3A%28level%3A30%29%29%29%29%2C'
+        + 'meta%3A%28'
+        + 'alias%3AFilter%2C'
+        + 'disabled%3A%21f%2C'
+        + 'index%3A%27logs-%2A%27%2C'
+        + 'key%3Abool%2C'
+        + 'negate%3A%21f%2C'
+        + 'type%3Acustom%2C'
+        + 'value%3A%27%7B%22must%22%3A%5B%7B%22term%22%3A%7B%22level%22%3A30%7D%7D%5D%7D%27'
+        + '%29'
+        + '%29'
+        + '%29%2C'
+        + 'index%3A%27logs-%2A%27%2C'
+        + 'interval%3Aauto%29'
+    )
+    assert url == expectedUrl
