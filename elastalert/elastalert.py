@@ -1314,6 +1314,22 @@ class ElastAlerter(object):
         elastalert_logger.info("Sleeping for %s seconds" % (duration))
         time.sleep(duration)
 
+    def generate_kibana6_discover(self, rule, match):
+        ''' Creates a link for a kibana6 discover app which has time set to the match. '''
+        discover = rule.get('kibana6_discover_url')
+        index = rule.get('kibana6_discover_index')
+        columns = rule.get('kibana6_discover_columns', ['_source'])
+        filters = rule['filter']
+        start = ts_add(
+            lookup_es_key(match, rule['timestamp_field']),
+            -rule.get('kibana6_discover_start_timedelta', rule.get('timeframe', datetime.timedelta(minutes=10)))
+        )
+        end = ts_add(
+            lookup_es_key(match, rule['timestamp_field']),
+            rule.get('kibana6_discover_end_timedelta', rule.get('timeframe', datetime.timedelta(minutes=10)))
+        )
+        return kibana.kibana6_discover_link(discover, index, columns, filters, start, end)
+
     def generate_kibana4_db(self, rule, match):
         ''' Creates a link for a kibana4 dashboard which has time set to the match. '''
         db_name = rule.get('use_kibana4_dashboard')
@@ -1494,6 +1510,11 @@ class ElastAlerter(object):
 
         if rule.get('use_kibana4_dashboard'):
             kb_link = self.generate_kibana4_db(rule, matches[0])
+            if kb_link:
+                matches[0]['kibana_link'] = kb_link
+
+        if rule.get('kibana6_discover_url') and rule.get('kibana6_discover_index'):
+            kb_link = self.generate_kibana6_discover(rule, matches[0])
             if kb_link:
                 matches[0]['kibana_link'] = kb_link
 

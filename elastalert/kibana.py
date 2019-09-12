@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa
+import json
 import os.path
+import prison
 import urllib.error
 import urllib.parse
 import urllib.request
 
 from .util import EAException
-
 
 dashboard_temp = {'editable': True,
                   'failover': False,
@@ -174,7 +175,6 @@ dashboard_temp = {'editable': True,
 
 kibana4_time_temp = "(refreshInterval:(display:Off,section:0,value:0),time:(from:'%s',mode:absolute,to:'%s'))"
 
-
 def set_time(dashboard, start, end):
     dashboard['services']['filter']['list']['0']['from'] = start
     dashboard['services']['filter']['list']['0']['to'] = end
@@ -286,3 +286,46 @@ def kibana4_dashboard_link(dashboard, starttime, endtime):
     time_settings = kibana4_time_temp % (starttime, endtime)
     time_settings = urllib.parse.quote(time_settings)
     return "%s?_g=%s" % (dashboard, time_settings)
+
+def kibana6_discover_link(discover, index, columns, filters, starttime, endtime):
+    discover = os.path.expandvars(discover)
+
+    globalState = prison.dumps( {
+        'refreshInterval': {
+            'pause': True,
+            'value': 0
+        },
+        'time': {
+            'from': starttime,
+            'mode': 'absolute',
+            'to': endtime
+        }
+    } )
+
+    bool_filter = { 'must': filters }
+    bool_filter_json = json.dumps(bool_filter, separators=(',', ':'))
+
+    appState = prison.dumps( {
+        'columns': columns,
+        'filters': [
+            {
+                '$state': {
+                    'store': 'appState'
+                },
+                'bool': bool_filter,
+                'meta': {
+                    'alias': 'Filter',
+                    'disabled': False,
+                    'index': index,
+                    'key': 'bool',
+                    'negate': False,
+                    'type': 'custom',
+                    'value': bool_filter_json
+                },
+            }
+        ],
+        'index': index,
+        'interval': 'auto'
+    } )
+
+    return "%s?_g=%s&_a=%s" % (discover, urllib.parse.quote(globalState), urllib.parse.quote(appState))
