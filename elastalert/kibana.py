@@ -287,7 +287,7 @@ def kibana4_dashboard_link(dashboard, starttime, endtime):
     time_settings = urllib.parse.quote(time_settings)
     return "%s?_g=%s" % (dashboard, time_settings)
 
-def kibana6_discover_link(discover, index, columns, filters, starttime, endtime):
+def kibana6_discover_link(discover, index, columns, filters, query_keys, starttime, endtime):
     discover = os.path.expandvars(discover)
 
     globalState = prison.dumps( {
@@ -302,30 +302,65 @@ def kibana6_discover_link(discover, index, columns, filters, starttime, endtime)
         }
     } )
 
-    bool_filter = { 'must': filters }
-    bool_filter_json = json.dumps(bool_filter, separators=(',', ':'))
+    app_filters = []
 
-    appState = prison.dumps( {
-        'columns': columns,
-        'filters': [
-            {
+    if filters:
+        bool_filter = { 'must': filters }
+        app_filters.append( {
+            '$state': {
+                'store': 'appState'
+            },
+            'bool': bool_filter,
+            'meta': {
+                'alias': 'Filter',
+                'disabled': False,
+                'index': index,
+                'key': 'bool',
+                'negate': False,
+                'type': 'custom',
+                'value': json.dumps(bool_filter, separators=(',', ':'))
+            },
+        } )
+
+    if query_keys:
+        for key in query_keys:
+            value = query_keys[ key ]
+            app_filters.append( {
                 '$state': {
                     'store': 'appState'
                 },
-                'bool': bool_filter,
                 'meta': {
-                    'alias': 'Filter',
+                    'alias': None,
                     'disabled': False,
                     'index': index,
-                    'key': 'bool',
+                    'key': key,
                     'negate': False,
-                    'type': 'custom',
-                    'value': bool_filter_json
+                    'params': {
+                        'query': value,
+                        'type': 'phrase'
+                    },
+                    'type': 'phrase',
+                    'value': value
                 },
-            }
-        ],
+                'query': {
+                    'match': {
+                        key: {
+                            'query': value,
+                            'type': 'phrase'
+                        }
+                    }
+                },
+            } )
+
+    appState = prison.dumps( {
+        'columns': columns,
+        'filters': app_filters,
         'index': index,
         'interval': 'auto'
     } )
 
-    return "%s?_g=%s&_a=%s" % (discover, urllib.parse.quote(globalState), urllib.parse.quote(appState))
+    return "%s?_g=%s&_a=%s" % (
+        discover,
+        urllib.parse.quote(globalState),
+        urllib.parse.quote(appState)
+    )

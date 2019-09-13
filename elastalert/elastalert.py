@@ -1317,18 +1317,34 @@ class ElastAlerter(object):
     def generate_kibana6_discover(self, rule, match):
         ''' Creates a link for a kibana6 discover app which has time set to the match. '''
         discover = rule.get('kibana6_discover_url')
-        index = rule.get('kibana6_discover_index')
+        index = rule.get('kibana6_discover_index_pattern_id')
         columns = rule.get('kibana6_discover_columns', ['_source'])
-        filters = rule['filter']
-        start = ts_add(
+        filters = rule.get('filter', [])
+
+        query_keys = {}
+        if 'query_key' in rule:
+            for qk in rule.get('compound_query_key', [rule['query_key']]):
+                if qk in match:
+                    query_keys[qk] = match[qk]
+
+        starttime = ts_add(
             lookup_es_key(match, rule['timestamp_field']),
             -rule.get('kibana6_discover_start_timedelta', rule.get('timeframe', datetime.timedelta(minutes=10)))
         )
-        end = ts_add(
+        endtime = ts_add(
             lookup_es_key(match, rule['timestamp_field']),
             rule.get('kibana6_discover_end_timedelta', rule.get('timeframe', datetime.timedelta(minutes=10)))
         )
-        return kibana.kibana6_discover_link(discover, index, columns, filters, start, end)
+
+        return kibana.kibana6_discover_link(
+            discover=discover,
+            index=index,
+            columns=columns,
+            filters=filters,
+            query_keys=query_keys,
+            starttime=starttime,
+            endtime=endtime
+        )
 
     def generate_kibana4_db(self, rule, match):
         ''' Creates a link for a kibana4 dashboard which has time set to the match. '''
@@ -1513,7 +1529,7 @@ class ElastAlerter(object):
             if kb_link:
                 matches[0]['kibana_link'] = kb_link
 
-        if rule.get('kibana6_discover_url') and rule.get('kibana6_discover_index'):
+        if rule.get('kibana6_discover_url') and rule.get('kibana6_discover_index_pattern_id'):
             kb_link = self.generate_kibana6_discover(rule, matches[0])
             if kb_link:
                 matches[0]['kibana_link'] = kb_link

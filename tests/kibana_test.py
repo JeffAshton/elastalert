@@ -114,9 +114,10 @@ def test_kibana6_discover_link(environ):
     index = 'logs-*'
     columns = ['timestamp', 'message']
     filters = [{'term': {'level': 30}}]
+    query_keys = {}
     starttime = '2019-09-01T00:00:00Z'
     endtime = '2019-09-02T00:00:00Z'
-    url = kibana6_discover_link(discover, index, columns, filters, starttime, endtime)
+    url = kibana6_discover_link(discover, index, columns, filters, query_keys, starttime, endtime)
     expectedUrl = (
         'http://kibana:5601/#/discover'
         + '?_g=%28'

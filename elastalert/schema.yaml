@@ -202,8 +202,10 @@ properties:
   query_key: *arrayOfString
   replace_dots_in_field_names: {type: boolean}
   scan_entire_timeframe: {type: boolean}
+
+  ### Kibana 6 Discover Link
   kibana6_discover_url: {type: string}
-  kibana6_discover_index: {type: string}
+  kibana6_discover_index_pattern_id: {type: string}
   kibana6_discover_columns: {type: array, items: {type: string}}
   kibana6_discover_start_timedelta: {type: string}
   kibana6_discover_end_timedelta: {type: string}
