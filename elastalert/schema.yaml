@@ -207,8 +207,8 @@ properties:
   kibana6_discover_url: {type: string}
   kibana6_discover_index_pattern_id: {type: string}
   kibana6_discover_columns: {type: array, items: {type: string}}
-  kibana6_discover_start_timedelta: {type: string}
-  kibana6_discover_end_timedelta: {type: string}
+  kibana6_discover_start_timedelta: *timeframe
+  kibana6_discover_end_timedelta: *timeframe
 
   # Alert Content
   alert_text: {type: string} # Python format string
