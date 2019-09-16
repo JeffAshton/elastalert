@@ -1330,10 +1330,10 @@ class ElastAlerter(object):
         timestamp = lookup_es_key(match, rule['timestamp_field'])
 
         start_timedelta = rule.get('kibana6_discover_start_timedelta', rule.get('timeframe', datetime.timedelta(minutes=10)))
-        starttime = ts_add( timestamp, -start_timedelta )
+        starttime = ts_add(timestamp, -start_timedelta)
 
         end_timedelta = rule.get('kibana6_discover_end_timedelta', rule.get('timeframe', datetime.timedelta(minutes=10)))
-        endtime = ts_add( timestamp, end_timedelta )
+        endtime = ts_add(timestamp, end_timedelta)
 
         return kibana.kibana6_discover_link(
             discover=discover,
