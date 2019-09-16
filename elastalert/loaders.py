@@ -257,6 +257,10 @@ class RulesLoader(object):
                 rule['kibana4_start_timedelta'] = datetime.timedelta(**rule['kibana4_start_timedelta'])
             if 'kibana4_end_timedelta' in rule:
                 rule['kibana4_end_timedelta'] = datetime.timedelta(**rule['kibana4_end_timedelta'])
+            if 'kibana6_discover_start_timedelta' in rule:
+                rule['kibana6_discover_start_timedelta'] = datetime.timedelta(**rule['kibana6_discover_start_timedelta'])
+            if 'kibana6_discover_end_timedelta' in rule:
+                rule['kibana6_discover_end_timedelta'] = datetime.timedelta(**rule['kibana6_discover_end_timedelta'])
         except (KeyError, TypeError) as e:
             raise EAException('Invalid time format used: %s' % e)
 
