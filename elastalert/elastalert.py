@@ -27,6 +27,7 @@ from elasticsearch.exceptions import TransportError
 from elasticsearch.exceptions import NotFoundError
 
 from . import kibana
+from .kibana_discover import kibana_discover_url
 from .alerts import DebugAlerter
 from .config import load_conf
 from .enhancements import DropMatchException
@@ -1314,56 +1315,6 @@ class ElastAlerter(object):
         elastalert_logger.info("Sleeping for %s seconds" % (duration))
         time.sleep(duration)
 
-    def generate_kibana_discover_url(self, rule, match):
-        ''' Creates a link for a kibana discover app which has time set to the match. '''
-        kibana_version = rule.get('use_kibana_discover')
-
-        discover_url = rule.get('kibana_discover_url')
-        if not discover_url:
-            logging.warning(
-                'use_kibana_discover was configured without kibana_discover_url for rule %s' % (
-                    rule['name']
-                )
-            )
-            return None
-
-        index = rule.get('kibana_discover_index_pattern_id')
-        if not index:
-            logging.warning(
-                'use_kibana_discover was configured without kibana_discover_index_pattern_id for rule %s' % (
-                    rule['name']
-                )
-            )
-            return None
-
-        columns = rule.get('kibana_discover_columns', ['_source'])
-        filters = rule.get('filter', [])
-
-        query_keys = {}
-        if 'query_key' in rule:
-            rule_query_keys=rule.get('compound_query_key', [rule['query_key']])
-            for qk in rule_query_keys:
-                query_keys[qk] = lookup_es_key(match, qk)
-
-        timestamp = lookup_es_key(match, rule['timestamp_field'])
-
-        start_timedelta = rule.get('kibana_discover_start_timedelta', rule.get('timeframe', datetime.timedelta(minutes=10)))
-        starttime = ts_add(timestamp, -start_timedelta)
-
-        end_timedelta = rule.get('kibana_discover_end_timedelta', rule.get('timeframe', datetime.timedelta(minutes=10)))
-        endtime = ts_add(timestamp, end_timedelta)
-
-        return kibana.kibana_discover_link(
-            kibana_version=kibana_version,
-            discover_url=discover_url,
-            index=index,
-            columns=columns,
-            filters=filters,
-            query_keys=query_keys,
-            starttime=starttime,
-            endtime=endtime
-        )
-
     def generate_kibana4_db(self, rule, match):
         ''' Creates a link for a kibana4 dashboard which has time set to the match. '''
         db_name = rule.get('use_kibana4_dashboard')
@@ -1548,7 +1499,7 @@ class ElastAlerter(object):
                 matches[0]['kibana_link'] = kb_link
 
         if rule.get('use_kibana_discover'):
-            kb_link = self.generate_kibana_discover_url(rule, matches[0])
+            kb_link = kibana_discover_url(rule, matches[0])
             if kb_link:
                 matches[0]['kibana_link'] = kb_link
 
