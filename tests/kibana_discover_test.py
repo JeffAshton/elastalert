@@ -1,4 +1,73 @@
+# -*- coding: utf-8 -*-
+import pytest
+
 from elastalert.kibana_discover import kibana_discover_url
+
+
+@pytest.mark.parametrize("kibana_version", ['5.6', '6.0', '6.1', '6.2', '6.3', '6.4', '6.5', '6.6', '6.7', '6.8'])
+def test_kibana_discover_url_with_kibana_5x_and_6x(kibana_version):
+    url = kibana_discover_url(
+        rule={
+            'use_kibana_discover': kibana_version,
+            'kibana_discover_url': 'http://kibana:5601/#/discover',
+            'kibana_discover_index_pattern_id': 'd6cabfb6-aaef-44ea-89c5-600e9a76991a',
+            'timestamp_field': 'timestamp'
+        },
+        match={
+            'timestamp': '2019-09-01T00:30:00Z'
+        }
+    )
+    expectedUrl = (
+        'http://kibana:5601/#/discover'
+        + '?_g=%28'  # global start
+        + 'refreshInterval%3A%28pause%3A%21t%2Cvalue%3A0%29%2C'
+        + 'time%3A%28'  # time start
+        + 'from%3A%272019-09-01T00%3A20%3A00Z%27%2C'
+        + 'mode%3Aabsolute%2C'
+        + 'to%3A%272019-09-01T00%3A40%3A00Z%27'
+        + '%29'  # time end
+        + '%29'  # global end
+        + '&_a=%28'  # app start
+        + 'columns%3A%21%28_source%29%2C'
+        + 'filters%3A%21%28%29%2C'
+        + 'index%3Ad6cabfb6-aaef-44ea-89c5-600e9a76991a%2C'
+        + 'interval%3Aauto'
+        + '%29'  # app end
+    )
+    assert url == expectedUrl
+
+
+@pytest.mark.parametrize("kibana_version", ['7.0', '7.1', '7.2', '7.3'])
+def test_kibana_discover_url_with_kibana_7x(kibana_version):
+    url = kibana_discover_url(
+        rule={
+            'use_kibana_discover': kibana_version,
+            'kibana_discover_url': 'http://kibana:5601/#/discover',
+            'kibana_discover_index_pattern_id': 'd6cabfb6-aaef-44ea-89c5-600e9a76991a',
+            'timestamp_field': 'timestamp'
+        },
+        match={
+            'timestamp': '2019-09-01T00:30:00Z'
+        }
+    )
+    expectedUrl = (
+        'http://kibana:5601/#/discover'
+        + '?_g=%28'  # global start
+        + 'filters%3A%21%28%29%2C'
+        + 'refreshInterval%3A%28pause%3A%21t%2Cvalue%3A0%29%2C'
+        + 'time%3A%28'  # time start
+        + 'from%3A%272019-09-01T00%3A20%3A00Z%27%2C'
+        + 'to%3A%272019-09-01T00%3A40%3A00Z%27'
+        + '%29'  # time end
+        + '%29'  # global end
+        + '&_a=%28'  # app start
+        + 'columns%3A%21%28_source%29%2C'
+        + 'filters%3A%21%28%29%2C'
+        + 'index%3Ad6cabfb6-aaef-44ea-89c5-600e9a76991a%2C'
+        + 'interval%3Aauto'
+        + '%29'  # app end
+    )
+    assert url == expectedUrl
 
 
 def test_kibana_discover_url_with_discover_url_env_substitution(environ):
