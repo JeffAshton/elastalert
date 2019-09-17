@@ -89,8 +89,10 @@ def kibana6_disover_global_state(starttime, endtime):
         }
     } )
 
+
 def kibana7_disover_global_state(starttime, endtime):
     return prison.dumps( {
+        'filters': [],
         'refreshInterval': {
             'pause': True,
             'value': 0
@@ -100,6 +102,7 @@ def kibana7_disover_global_state(starttime, endtime):
             'to': endtime
         }
     } )
+
 
 def kibana_discover_app_state(index, columns, filters, query_keys):
     app_filters = []
