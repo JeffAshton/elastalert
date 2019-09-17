@@ -58,15 +58,15 @@ Rule Configuration Cheat Sheet
 +--------------------------------------------------------------+           |
 | ``kibana4_end_timedelta`` (time, default: 10 min)            |           |
 +--------------------------------------------------------------+           |
-| ``kibana6_discover_url`` (string, no default)                |           |
+| ``kibana_discover_url`` (string, no default)                 |           |
 +--------------------------------------------------------------+           |
-| ``kibana6_discover_index_pattern_id`` (string, no default)   |           |
+| ``kibana_discover_index_pattern_id`` (string, no default)    |           |
 +--------------------------------------------------------------+           |
-| ``kibana6_discover_columns`` (list of strs, default _source )|           |
+| ``kibana_discover_columns`` (list of strs, default _source)  |           |
 +--------------------------------------------------------------+           |
-| ``kibana6_discover_start_timedelta`` (time, default: 10 min) |           |
+| ``kibana_discover_start_timedelta`` (time, default: 10 min)  |           |
 +--------------------------------------------------------------+           |
-| ``kibana6_discover_end_timedelta`` (time, default: 10 min)   |           |
+| ``kibana_discover_end_timedelta`` (time, default: 10 min)    |           |
 +--------------------------------------------------------------+           |
 | ``use_local_time`` (boolean, default True)                   |           |
 +--------------------------------------------------------------+           |
@@ -520,32 +520,32 @@ This value is added in back of the event. For example,
 
 ``kibana4_end_timedelta: minutes: 2``
 
-kibana6_discover_url
+kibana_discover_url
 ^^^^^^^^^^^^^^^^^^^^
 
-``kibana6_discover_url``: A link to a Kibana 6 Discover application.
+``kibana_discover_url``: A link to a Kibana 6 Discover application.
 
-kibana6_discover_index_pattern_id
+kibana_discover_index_pattern_id
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-kibana6_discover_columns
+kibana_discover_columns
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-kibana6_discover_start_timedelta
+kibana_discover_start_timedelta
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-``kibana6_discover_start_timedelta``: Defaults to 10 minutes. This option allows you to specify the start time for the generated kibana6 discover link.
+``kibana_discover_start_timedelta``: Defaults to 10 minutes. This option allows you to specify the start time for the generated kibana discover link.
 This value is added in front of the event. For example,
 
-``kibana6_discover_start_timedelta: minutes: 2``
+``kibana_discover_start_timedelta: minutes: 2``
 
-kibana6_discover_end_timedelta
+kibana_discover_end_timedelta
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-``kibana6_discover_end_timedelta``: Defaults to 10 minutes. This option allows you to specify the end time for the generated kibana4 discover link.
+``kibana_discover_end_timedelta``: Defaults to 10 minutes. This option allows you to specify the end time for the generated kibana discover link.
 This value is added in back of the event. For example,
 
-``kibana6_discover_end_timedelta: minutes: 2``
+``kibana_discover_end_timedelta: minutes: 2``
 
 use_local_time
 ^^^^^^^^^^^^^^

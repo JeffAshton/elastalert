@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa
+import logging
 import json
 import os.path
 import prison
@@ -287,8 +288,24 @@ def kibana4_dashboard_link(dashboard, starttime, endtime):
     time_settings = urllib.parse.quote(time_settings)
     return "%s?_g=%s" % (dashboard, time_settings)
 
-def kibana6_discover_link(discover, index, columns, filters, query_keys, starttime, endtime):
-    discover = os.path.expandvars(discover)
+def kibana_discover_link(kibana_version, discover_url, index, columns, filters, query_keys, starttime, endtime):
+
+    if(kibana_version == '6.x.x'):
+        querystring = kibana6_discover_querystring(index, columns, filters, query_keys, starttime, endtime)
+    else:
+        logging.warning(
+            'Unknown kibana discover app version %s' % (
+                kibana_version
+            )
+        )
+        return None
+
+    return "%s?%s" % (
+        os.path.expandvars(discover_url),
+        querystring
+    )
+
+def kibana6_discover_querystring(index, columns, filters, query_keys, starttime, endtime):
 
     globalState = prison.dumps( {
         'refreshInterval': {
@@ -312,7 +329,7 @@ def kibana6_discover_link(discover, index, columns, filters, query_keys, startti
             },
             'bool': bool_filter,
             'meta': {
-                'alias': 'Filter',
+                'alias': 'filter',
                 'disabled': False,
                 'index': index,
                 'key': 'bool',
@@ -325,6 +342,10 @@ def kibana6_discover_link(discover, index, columns, filters, query_keys, startti
     if query_keys:
         for key in query_keys:
             value = query_keys[ key ]
+            if type(value) is str:
+                value_str = value
+            else:
+                value_str = str(value)
             app_filters.append( {
                 '$state': {
                     'store': 'appState'
@@ -336,16 +357,16 @@ def kibana6_discover_link(discover, index, columns, filters, query_keys, startti
                     'key': key,
                     'negate': False,
                     'params': {
-                        'query': value,
+                        'query': value_str,
                         'type': 'phrase'
                     },
                     'type': 'phrase',
-                    'value': value
+                    'value': value_str
                 },
                 'query': {
                     'match': {
                         key: {
-                            'query': value,
+                            'query': value_str,
                             'type': 'phrase'
                         }
                     }
@@ -359,8 +380,7 @@ def kibana6_discover_link(discover, index, columns, filters, query_keys, startti
         'interval': 'auto'
     } )
 
-    return "%s?_g=%s&_a=%s" % (
-        discover,
+    return "_g=%s&_a=%s" % (
         urllib.parse.quote(globalState),
         urllib.parse.quote(appState)
     )
