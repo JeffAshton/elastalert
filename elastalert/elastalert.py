@@ -1341,9 +1341,9 @@ class ElastAlerter(object):
 
         query_keys = {}
         if 'query_key' in rule:
-            for qk in rule.get('compound_query_key', [rule['query_key']]):
-                if qk in match:
-                    query_keys[qk] = match[qk]
+            rule_query_keys=rule.get('compound_query_key', [rule['query_key']])
+            for qk in rule_query_keys:
+                query_keys[qk] = lookup_es_key(match, qk)
 
         timestamp = lookup_es_key(match, rule['timestamp_field'])
 

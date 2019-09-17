@@ -288,10 +288,19 @@ def kibana4_dashboard_link(dashboard, starttime, endtime):
     time_settings = urllib.parse.quote(time_settings)
     return "%s?_g=%s" % (dashboard, time_settings)
 
+kibana5_and_6_versions = frozenset(['5.6', '6.0', '6.1', '6.2', '6.3', '6.4', '6.5', '6.6', '6.7', '6.8'])
+kibana7_versions = frozenset(['7.0', '7.1', '7.2', '7.3'])
+
 def kibana_discover_link(kibana_version, discover_url, index, columns, filters, query_keys, starttime, endtime):
 
-    if(kibana_version == '6.x.x'):
-        querystring = kibana6_discover_querystring(index, columns, filters, query_keys, starttime, endtime)
+    if kibana_version in kibana5_and_6_versions:
+        globalState = kibana6_disover_global_state(starttime, endtime)
+        appState = kibana6_kibana7_app_state(index, columns, filters, query_keys)
+
+    elif kibana_version in kibana7_versions:
+        globalState = kibana7_disover_global_state(starttime, endtime)
+        appState = kibana6_kibana7_app_state(index, columns, filters, query_keys)
+
     else:
         logging.warning(
             'Unknown kibana discover app version %s' % (
@@ -300,14 +309,14 @@ def kibana_discover_link(kibana_version, discover_url, index, columns, filters, 
         )
         return None
 
-    return "%s?%s" % (
+    return "%s?_g=%s&_a=%s" % (
         os.path.expandvars(discover_url),
-        querystring
+        urllib.parse.quote(globalState),
+        urllib.parse.quote(appState)
     )
 
-def kibana6_discover_querystring(index, columns, filters, query_keys, starttime, endtime):
-
-    globalState = prison.dumps( {
+def kibana6_disover_global_state(starttime, endtime):
+    return prison.dumps( {
         'refreshInterval': {
             'pause': True,
             'value': 0
@@ -319,6 +328,19 @@ def kibana6_discover_querystring(index, columns, filters, query_keys, starttime,
         }
     } )
 
+def kibana7_disover_global_state(starttime, endtime):
+    return prison.dumps( {
+        'refreshInterval': {
+            'pause': True,
+            'value': 0
+        },
+        'time': {
+            'from': starttime,
+            'to': endtime
+        }
+    } )
+
+def kibana6_kibana7_app_state(index, columns, filters, query_keys):
     app_filters = []
 
     if filters:
@@ -342,10 +364,6 @@ def kibana6_discover_querystring(index, columns, filters, query_keys, starttime,
     if query_keys:
         for key in query_keys:
             value = query_keys[ key ]
-            if type(value) is str:
-                value_str = value
-            else:
-                value_str = str(value)
             app_filters.append( {
                 '$state': {
                     'store': 'appState'
@@ -357,30 +375,25 @@ def kibana6_discover_querystring(index, columns, filters, query_keys, starttime,
                     'key': key,
                     'negate': False,
                     'params': {
-                        'query': value_str,
+                        'query': value,
                         'type': 'phrase'
                     },
                     'type': 'phrase',
-                    'value': value_str
+                    'value': value
                 },
                 'query': {
                     'match': {
                         key: {
-                            'query': value_str,
+                            'query': value,
                             'type': 'phrase'
                         }
                     }
                 },
             } )
 
-    appState = prison.dumps( {
+    return prison.dumps( {
         'columns': columns,
         'filters': app_filters,
         'index': index,
         'interval': 'auto'
     } )
-
-    return "_g=%s&_a=%s" % (
-        urllib.parse.quote(globalState),
-        urllib.parse.quote(appState)
-    )
