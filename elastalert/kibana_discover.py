@@ -24,7 +24,7 @@ def kibana_discover_url(rule, match):
     if not discover_url:
         logging.warning(
             'use_kibana_discover was configured without kibana_discover_url for rule %s' % (
-                rule['name']
+                rule.get('name', '<MISSING NAME>')
             )
         )
         return None
@@ -33,7 +33,7 @@ def kibana_discover_url(rule, match):
     if not index:
         logging.warning(
             'use_kibana_discover was configured without kibana_discover_index_pattern_id for rule %s' % (
-                rule['name']
+                rule.get('name', '<MISSING NAME>')
             )
         )
         return None
@@ -63,8 +63,9 @@ def kibana_discover_url(rule, match):
 
     else:
         logging.warning(
-            'Unknown kibana discover app version %s' % (
-                kibana_version
+            'Unknown kibana discover app version %s for rule %s' % (
+                kibana_version,
+                rule.get('name', '<MISSING NAME>')
             )
         )
         return None

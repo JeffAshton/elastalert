@@ -70,6 +70,51 @@ def test_kibana_discover_url_with_kibana_7x(kibana_version):
     assert url == expectedUrl
 
 
+def test_kibana_discover_url_with_missing_kibana_discover_url():
+    url = kibana_discover_url(
+        rule={
+            'use_kibana_discover': '6.8',
+            'kibana_discover_index_pattern_id': 'logs',
+            'timestamp_field': 'timestamp',
+            'name': 'test'
+        },
+        match={
+            'timestamp': '2019-09-01T00:30:00Z'
+        }
+    )
+    assert url is None
+
+
+def test_kibana_discover_url_with_missing_kibana_discover_index_pattern_id():
+    url = kibana_discover_url(
+        rule={
+            'use_kibana_discover': '6.8',
+            'kibana_discover_url': 'http://kibana:5601/#/discover',
+            'timestamp_field': 'timestamp',
+            'name': 'test'
+        },
+        match={
+            'timestamp': '2019-09-01T00:30:00Z'
+        }
+    )
+    assert url is None
+
+
+def test_kibana_discover_url_with_invalid_kibana_version():
+    url = kibana_discover_url(
+        rule={
+            'use_kibana_discover': '4.5',
+            'kibana_discover_url': 'http://kibana:5601/#/discover',
+            'kibana_discover_index_pattern_id': 'logs-*',
+            'timestamp_field': 'timestamp'
+        },
+        match={
+            'timestamp': '2019-09-01T00:30:00Z'
+        }
+    )
+    assert url is None
+
+
 def test_kibana_discover_url_with_discover_url_env_substitution(environ):
     environ.update({
         'KIBANA_HOST': 'kibana',
@@ -100,6 +145,39 @@ def test_kibana_discover_url_with_discover_url_env_substitution(environ):
         + 'columns%3A%21%28_source%29%2C'
         + 'filters%3A%21%28%29%2C'
         + 'index%3Ad6cabfb6-aaef-44ea-89c5-600e9a76991a%2C'
+        + 'interval%3Aauto'
+        + '%29'  # app end
+    )
+    assert url == expectedUrl
+
+
+def test_kibana_discover_url_with_custom_columns():
+    url = kibana_discover_url(
+        rule={
+            'use_kibana_discover': '6.8',
+            'kibana_discover_url': 'http://kibana:5601/#/discover',
+            'kibana_discover_index_pattern_id': 'logs-*',
+            'kibana_discover_columns': ['level', 'message'],
+            'timestamp_field': 'timestamp'
+        },
+        match={
+            'timestamp': '2019-09-01T00:30:00Z'
+        }
+    )
+    expectedUrl = (
+        'http://kibana:5601/#/discover'
+        + '?_g=%28'  # global start
+        + 'refreshInterval%3A%28pause%3A%21t%2Cvalue%3A0%29%2C'
+        + 'time%3A%28'  # time start
+        + 'from%3A%272019-09-01T00%3A20%3A00Z%27%2C'
+        + 'mode%3Aabsolute%2C'
+        + 'to%3A%272019-09-01T00%3A40%3A00Z%27'
+        + '%29'  # time end
+        + '%29'  # global end
+        + '&_a=%28'  # app start
+        + 'columns%3A%21%28level%2Cmessage%29%2C'
+        + 'filters%3A%21%28%29%2C'
+        + 'index%3A%27logs-%2A%27%2C'
         + 'interval%3Aauto'
         + '%29'  # app end
     )
@@ -204,8 +282,6 @@ def test_kibana_discover_url_with_multiple_filters():
         + 'interval%3Aauto'
         + '%29'  # app end
     )
-    print('url: ' + url)
-    print('expectedUrl: ' + expectedUrl)
     assert url == expectedUrl
 
 
