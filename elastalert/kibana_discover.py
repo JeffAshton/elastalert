@@ -41,11 +41,10 @@ def kibana_discover_url(rule, match):
     columns = rule.get('kibana_discover_columns', ['_source'])
     filters = rule.get('filter', [])
 
-    query_keys = {}
     if 'query_key' in rule:
-        rule_query_keys=rule.get('compound_query_key', [rule['query_key']])
-        for qk in rule_query_keys:
-            query_keys[qk] = lookup_es_key(match, qk)
+        query_keys = rule.get('compound_query_key', [rule['query_key']])
+    else:
+        query_keys = []
 
     timestamp = lookup_es_key(match, rule['timestamp_field'])
     start_timedelta = rule.get('kibana_discover_start_timedelta', rule.get('timeframe', datetime.timedelta(minutes=10)))
@@ -55,11 +54,11 @@ def kibana_discover_url(rule, match):
 
     if kibana_version in kibana5_kibana6_versions:
         globalState = kibana6_disover_global_state(starttime, endtime)
-        appState = kibana_discover_app_state(index, columns, filters, query_keys)
+        appState = kibana_discover_app_state(index, columns, filters, query_keys, match)
 
     elif kibana_version in kibana7_versions:
         globalState = kibana7_disover_global_state(starttime, endtime)
-        appState = kibana_discover_app_state(index, columns, filters, query_keys)
+        appState = kibana_discover_app_state(index, columns, filters, query_keys, match)
 
     else:
         logging.warning(
@@ -105,7 +104,7 @@ def kibana7_disover_global_state(starttime, endtime):
     } )
 
 
-def kibana_discover_app_state(index, columns, filters, query_keys):
+def kibana_discover_app_state(index, columns, filters, query_keys, match):
     app_filters = []
 
     if filters:
@@ -126,13 +125,29 @@ def kibana_discover_app_state(index, columns, filters, query_keys):
             },
         } )
 
-    if query_keys:
-        for key in query_keys:
-            value = query_keys[ key ]
-            if value is None:
-                value_str=''
-            else:
-                value_str = str(value)
+    for query_key in query_keys:
+        query_value = lookup_es_key(match, query_key)
+
+        if query_value is None:
+            app_filters.append( {
+                '$state': {
+                    'store': 'appState'
+                },
+                'exists': {
+                    'field': query_key
+                },
+                'meta': {
+                    'alias': None,
+                    'disabled': False,
+                    'index': index,
+                    'key': query_key,
+                    'negate': True,
+                    'type': 'exists',
+                    'value': 'exists'
+                }
+            } )
+
+        else:
             app_filters.append( {
                 '$state': {
                     'store': 'appState'
@@ -141,23 +156,23 @@ def kibana_discover_app_state(index, columns, filters, query_keys):
                     'alias': None,
                     'disabled': False,
                     'index': index,
-                    'key': key,
+                    'key': query_key,
                     'negate': False,
                     'params': {
-                        'query': value,
+                        'query': query_value,
                         'type': 'phrase'
                     },
                     'type': 'phrase',
-                    'value': value_str
+                    'value': str(query_value)
                 },
                 'query': {
                     'match': {
-                        key: {
-                            'query': value,
+                        query_key: {
+                            'query': query_value,
                             'type': 'phrase'
                         }
                     }
-                },
+                }
             } )
 
     return prison.dumps( {

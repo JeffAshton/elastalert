@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from datetime import timedelta
 import pytest
 
 from elastalert.kibana_discover import kibana_discover_url
@@ -151,6 +152,140 @@ def test_kibana_discover_url_with_discover_url_env_substitution(environ):
     assert url == expectedUrl
 
 
+def test_kibana_discover_url_with_start_timedelta():
+    url = kibana_discover_url(
+        rule={
+            'use_kibana_discover': '7.3',
+            'kibana_discover_url': 'http://kibana:5601/#/discover',
+            'kibana_discover_index_pattern_id': 'd6cabfb6-aaef-44ea-89c5-600e9a76991a',
+            'kibana_discover_start_timedelta': timedelta(hours=1),
+            'timestamp_field': 'timestamp'
+        },
+        match={
+            'timestamp': '2019-09-01T04:00:00Z'
+        }
+    )
+    expectedUrl = (
+        'http://kibana:5601/#/discover'
+        + '?_g=%28'  # global start
+        + 'filters%3A%21%28%29%2C'
+        + 'refreshInterval%3A%28pause%3A%21t%2Cvalue%3A0%29%2C'
+        + 'time%3A%28'  # time start
+        + 'from%3A%272019-09-01T03%3A00%3A00Z%27%2C'
+        + 'to%3A%272019-09-01T04%3A10%3A00Z%27'
+        + '%29'  # time end
+        + '%29'  # global end
+        + '&_a=%28'  # app start
+        + 'columns%3A%21%28_source%29%2C'
+        + 'filters%3A%21%28%29%2C'
+        + 'index%3Ad6cabfb6-aaef-44ea-89c5-600e9a76991a%2C'
+        + 'interval%3Aauto'
+        + '%29'  # app end
+    )
+    assert url == expectedUrl
+
+
+def test_kibana_discover_url_with_start_timedelta_and_timeframe():
+    url = kibana_discover_url(
+        rule={
+            'use_kibana_discover': '7.3',
+            'kibana_discover_url': 'http://kibana:5601/#/discover',
+            'kibana_discover_index_pattern_id': 'd6cabfb6-aaef-44ea-89c5-600e9a76991a',
+            'kibana_discover_start_timedelta': timedelta(hours=1),
+            'timeframe': timedelta(minutes=20),
+            'timestamp_field': 'timestamp'
+        },
+        match={
+            'timestamp': '2019-09-01T04:00:00Z'
+        }
+    )
+    expectedUrl = (
+        'http://kibana:5601/#/discover'
+        + '?_g=%28'  # global start
+        + 'filters%3A%21%28%29%2C'
+        + 'refreshInterval%3A%28pause%3A%21t%2Cvalue%3A0%29%2C'
+        + 'time%3A%28'  # time start
+        + 'from%3A%272019-09-01T03%3A00%3A00Z%27%2C'
+        + 'to%3A%272019-09-01T04%3A20%3A00Z%27'
+        + '%29'  # time end
+        + '%29'  # global end
+        + '&_a=%28'  # app start
+        + 'columns%3A%21%28_source%29%2C'
+        + 'filters%3A%21%28%29%2C'
+        + 'index%3Ad6cabfb6-aaef-44ea-89c5-600e9a76991a%2C'
+        + 'interval%3Aauto'
+        + '%29'  # app end
+    )
+    assert url == expectedUrl
+
+
+def test_kibana_discover_url_with_end_timedelta():
+    url = kibana_discover_url(
+        rule={
+            'use_kibana_discover': '7.3',
+            'kibana_discover_url': 'http://kibana:5601/#/discover',
+            'kibana_discover_index_pattern_id': 'd6cabfb6-aaef-44ea-89c5-600e9a76991a',
+            'kibana_discover_end_timedelta': timedelta(hours=1),
+            'timestamp_field': 'timestamp'
+        },
+        match={
+            'timestamp': '2019-09-01T04:00:00Z'
+        }
+    )
+    expectedUrl = (
+        'http://kibana:5601/#/discover'
+        + '?_g=%28'  # global start
+        + 'filters%3A%21%28%29%2C'
+        + 'refreshInterval%3A%28pause%3A%21t%2Cvalue%3A0%29%2C'
+        + 'time%3A%28'  # time start
+        + 'from%3A%272019-09-01T03%3A50%3A00Z%27%2C'
+        + 'to%3A%272019-09-01T05%3A00%3A00Z%27'
+        + '%29'  # time end
+        + '%29'  # global end
+        + '&_a=%28'  # app start
+        + 'columns%3A%21%28_source%29%2C'
+        + 'filters%3A%21%28%29%2C'
+        + 'index%3Ad6cabfb6-aaef-44ea-89c5-600e9a76991a%2C'
+        + 'interval%3Aauto'
+        + '%29'  # app end
+    )
+    assert url == expectedUrl
+
+
+def test_kibana_discover_url_with_end_timedelta_and_timeframe():
+    url = kibana_discover_url(
+        rule={
+            'use_kibana_discover': '7.3',
+            'kibana_discover_url': 'http://kibana:5601/#/discover',
+            'kibana_discover_index_pattern_id': 'd6cabfb6-aaef-44ea-89c5-600e9a76991a',
+            'kibana_discover_end_timedelta': timedelta(hours=1),
+            'timeframe': timedelta(minutes=20),
+            'timestamp_field': 'timestamp'
+        },
+        match={
+            'timestamp': '2019-09-01T04:00:00Z'
+        }
+    )
+    expectedUrl = (
+        'http://kibana:5601/#/discover'
+        + '?_g=%28'  # global start
+        + 'filters%3A%21%28%29%2C'
+        + 'refreshInterval%3A%28pause%3A%21t%2Cvalue%3A0%29%2C'
+        + 'time%3A%28'  # time start
+        + 'from%3A%272019-09-01T03%3A40%3A00Z%27%2C'
+        + 'to%3A%272019-09-01T05%3A00%3A00Z%27'
+        + '%29'  # time end
+        + '%29'  # global end
+        + '&_a=%28'  # app start
+        + 'columns%3A%21%28_source%29%2C'
+        + 'filters%3A%21%28%29%2C'
+        + 'index%3Ad6cabfb6-aaef-44ea-89c5-600e9a76991a%2C'
+        + 'interval%3Aauto'
+        + '%29'  # app end
+    )
+    assert url == expectedUrl
+
+
 def test_kibana_discover_url_with_custom_columns():
     url = kibana_discover_url(
         rule={
@@ -212,6 +347,7 @@ def test_kibana_discover_url_with_single_filter():
         + '&_a=%28'  # app start
         + 'columns%3A%21%28_source%29%2C'
         + 'filters%3A%21%28'  # filters start
+
         + '%28'  # filter start
         + '%27%24state%27%3A%28store%3AappState%29%2C'
         + 'bool%3A%28must%3A%21%28%28term%3A%28level%3A30%29%29%29%29%2C'
@@ -225,6 +361,7 @@ def test_kibana_discover_url_with_single_filter():
         + 'value%3A%27%7B%22must%22%3A%5B%7B%22term%22%3A%7B%22level%22%3A30%7D%7D%5D%7D%27'
         + '%29'  # meta end
         + '%29'  # filter end
+
         + '%29%2C'  # filters end
         + 'index%3A%27logs-%2A%27%2C'
         + 'interval%3Aauto'
@@ -262,6 +399,7 @@ def test_kibana_discover_url_with_multiple_filters():
         + '&_a=%28'  # app start
         + 'columns%3A%21%28_source%29%2C'
         + 'filters%3A%21%28'  # filters start
+
         + '%28'  # filter start
         + '%27%24state%27%3A%28store%3AappState%29%2C'
         + 'bool%3A%28must%3A%21%28%28term%3A%28app%3Atest%29%29%2C%28term%3A%28level%3A30%29%29%29%29%2C'
@@ -277,6 +415,7 @@ def test_kibana_discover_url_with_multiple_filters():
         + '%5D%7D%27'  # value end
         + '%29'  # meta end
         + '%29'  # filter end
+
         + '%29%2C'  # filters end
         + 'index%3A%2790943e30-9a47-11e8-b64d-95841ca0b247%27%2C'
         + 'interval%3Aauto'
@@ -312,6 +451,7 @@ def test_kibana_discover_url_with_int_query_key():
         + '&_a=%28'  # app start
         + 'columns%3A%21%28_source%29%2C'
         + 'filters%3A%21%28'  # filters start
+
         + '%28'  # filter start
         + '%27%24state%27%3A%28store%3AappState%29%2C'
         + 'meta%3A%28'  # meta start
@@ -335,6 +475,7 @@ def test_kibana_discover_url_with_int_query_key():
         + '%29'  # match end
         + '%29'  # query end
         + '%29'  # filter end
+
         + '%29%2C'  # filters end
         + 'index%3A%27logs-%2A%27%2C'
         + 'interval%3Aauto'
@@ -370,6 +511,7 @@ def test_kibana_discover_url_with_str_query_key():
         + '&_a=%28'  # app start
         + 'columns%3A%21%28_source%29%2C'
         + 'filters%3A%21%28'  # filters start
+
         + '%28'  # filter start
         + '%27%24state%27%3A%28store%3AappState%29%2C'
         + 'meta%3A%28'  # meta start
@@ -393,6 +535,106 @@ def test_kibana_discover_url_with_str_query_key():
         + '%29'  # match end
         + '%29'  # query end
         + '%29'  # filter end
+
+        + '%29%2C'  # filters end
+        + 'index%3A%27logs-%2A%27%2C'
+        + 'interval%3Aauto'
+        + '%29'  # app end
+    )
+    assert url == expectedUrl
+
+
+def test_kibana_discover_url_with_null_query_key_value():
+    url = kibana_discover_url(
+        rule={
+            'use_kibana_discover': '6.8',
+            'kibana_discover_url': 'http://kibana:5601/#/discover',
+            'kibana_discover_index_pattern_id': 'logs-*',
+            'timestamp_field': 'timestamp',
+            'query_key': 'status'
+        },
+        match={
+            'timestamp': '2019-09-01T00:30:00Z',
+            'status': None
+        }
+    )
+    expectedUrl = (
+        'http://kibana:5601/#/discover'
+        + '?_g=%28'  # global start
+        + 'refreshInterval%3A%28pause%3A%21t%2Cvalue%3A0%29%2C'
+        + 'time%3A%28'  # time start
+        + 'from%3A%272019-09-01T00%3A20%3A00Z%27%2C'
+        + 'mode%3Aabsolute%2C'
+        + 'to%3A%272019-09-01T00%3A40%3A00Z%27'
+        + '%29'  # time end
+        + '%29'  # global end
+        + '&_a=%28'  # app start
+        + 'columns%3A%21%28_source%29%2C'
+        + 'filters%3A%21%28'  # filters start
+
+        + '%28'  # filter start
+        + '%27%24state%27%3A%28store%3AappState%29%2C'
+        + 'exists%3A%28field%3Astatus%29%2C'
+        + 'meta%3A%28'  # meta start
+        + 'alias%3A%21n%2C'
+        + 'disabled%3A%21f%2C'
+        + 'index%3A%27logs-%2A%27%2C'
+        + 'key%3Astatus%2C'
+        + 'negate%3A%21t%2C'
+        + 'type%3Aexists%2C'
+        + 'value%3Aexists'
+        + '%29'  # meta end
+        + '%29'  # filter end
+
+        + '%29%2C'  # filters end
+        + 'index%3A%27logs-%2A%27%2C'
+        + 'interval%3Aauto'
+        + '%29'  # app end
+    )
+    assert url == expectedUrl
+
+
+def test_kibana_discover_url_with_missing_query_key_value():
+    url = kibana_discover_url(
+        rule={
+            'use_kibana_discover': '6.8',
+            'kibana_discover_url': 'http://kibana:5601/#/discover',
+            'kibana_discover_index_pattern_id': 'logs-*',
+            'timestamp_field': 'timestamp',
+            'query_key': 'status'
+        },
+        match={
+            'timestamp': '2019-09-01T00:30:00Z'
+        }
+    )
+    expectedUrl = (
+        'http://kibana:5601/#/discover'
+        + '?_g=%28'  # global start
+        + 'refreshInterval%3A%28pause%3A%21t%2Cvalue%3A0%29%2C'
+        + 'time%3A%28'  # time start
+        + 'from%3A%272019-09-01T00%3A20%3A00Z%27%2C'
+        + 'mode%3Aabsolute%2C'
+        + 'to%3A%272019-09-01T00%3A40%3A00Z%27'
+        + '%29'  # time end
+        + '%29'  # global end
+        + '&_a=%28'  # app start
+        + 'columns%3A%21%28_source%29%2C'
+        + 'filters%3A%21%28'  # filters start
+
+        + '%28'  # filter start
+        + '%27%24state%27%3A%28store%3AappState%29%2C'
+        + 'exists%3A%28field%3Astatus%29%2C'
+        + 'meta%3A%28'  # meta start
+        + 'alias%3A%21n%2C'
+        + 'disabled%3A%21f%2C'
+        + 'index%3A%27logs-%2A%27%2C'
+        + 'key%3Astatus%2C'
+        + 'negate%3A%21t%2C'
+        + 'type%3Aexists%2C'
+        + 'value%3Aexists'
+        + '%29'  # meta end
+        + '%29'  # filter end
+
         + '%29%2C'  # filters end
         + 'index%3A%27logs-%2A%27%2C'
         + 'interval%3Aauto'
