@@ -292,7 +292,7 @@ properties:
   pagerduty_client_name: {type: string}
   pagerduty_event_type: {enum: [none, trigger, resolve, acknowledge]}
 
-### PagerTree
+  ### PagerTree
   pagertree_integration_url: {type: string}
 
 
@@ -359,3 +359,11 @@ properties:
   zbx_sender_port: {type: integer}
   zbx_host: {type: string}
   zbx_item: {type: string}
+
+dependencies:
+  kibana_discover_app_url: [ kibana_discover_version, kibana_discover_index_pattern_id ]
+  kibana_discover_version: [ kibana_discover_app_url, kibana_discover_index_pattern_id ]
+  kibana_discover_index_pattern_id: [ kibana_discover_app_url, kibana_discover_version ]
+  kibana_discover_columns: [ kibana_discover_app_url, kibana_discover_version, kibana_discover_index_pattern_id ]
+  kibana_discover_from_timedelta: [ kibana_discover_app_url, kibana_discover_version, kibana_discover_index_pattern_id ]
+  kibana_discover_to_timedelta: [ kibana_discover_app_url, kibana_discover_version, kibana_discover_index_pattern_id ]
